@@ -7,9 +7,9 @@ variable vra_refresh_token {
 }
 
 variable vra_blueprintId {
-    type = string
+  type = string
 }
 
 variable vra_projectId {
-    type = string
+  type = string
 }
