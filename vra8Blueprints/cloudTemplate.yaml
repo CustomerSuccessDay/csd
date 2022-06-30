@@ -1,0 +1,174 @@
+name: cloudAgnostic
+formatVersion: 1
+inputs:
+  platform:
+    type: string
+    default: platform:aws
+    title: Platform
+    oneOf:
+      - title: AWS
+        const: platform:aws
+      - title: Azure
+        const: platform:azure
+      - title: On-Prem
+        const: platform:vsphere
+  region:
+    type: string
+    title: Region
+    default: region:sydney
+  flavor:
+    type: string
+    default: medium
+    title: Flavor
+    oneOf:
+      - title: Tiny
+        const: tiny
+      - title: Small
+        const: small
+      - title: Medium
+        const: medium
+      - title: Oh well, It's not my Credit Card...
+        const: large
+  image:
+    type: string
+    default: ubuntu1804
+    title: Image
+    oneOf:
+      - title: Ubuntu 1804
+        const: ubuntu1804
+  workloadtype:
+    type: string
+    default: function:public
+    title: Workload Type
+  applications:
+    type: string
+    default: moad
+    title: Application
+    oneOf:
+      - title: Opencart
+        const: moad
+      - title: Apache HTTPD
+        const: apache
+      - title: Tomcat Server
+        const: tomcat
+      - title: Nginx
+        const: nginx
+resources:
+  Cloud_SecurityGroup_1:
+    type: Cloud.SecurityGroup
+    dependsOn:
+      - App_Network
+      - Db_Network
+    properties:
+      constraints:
+        - tag: project:multicloudmanagement
+      securityGroupType: existing
+  LoadBalancer:
+    type: Cloud.LoadBalancer
+    properties:
+      Region: region:sydney
+      Platform: ${input.platform}
+      constraints:
+        - tag: project:multicloudmanagement
+      os: linux
+      tags:
+        - key: project
+          value: cloudbrokers
+        - key: timeStamp
+          value: ${env.requestedAt}
+      routes:
+        - port: '80'
+          protocol: HTTP
+          instancePort: '80'
+          instanceProtocol: HTTP
+          healthCheckConfiguration:
+            port: '80'
+            urlPath: /index.php
+            protocol: HTTP
+            timeoutSeconds: 4
+            intervalSeconds: 5
+            healthyThreshold: 2
+            unhealthyThreshold: 5
+      network: ${resource.App_Network.id}
+      instances: ${resource.App[*].id}
+      internetFacing: true
+      name: ${env.deploymentName}
+  App:
+    type: Cloud.Machine
+    properties:
+      tags:
+        - key: timeStamp
+          value: ${env.requestedAt}
+      image: ${input.image}
+      flavor: ${input.flavor}
+      customizationSpec: test.cmlab.local_linux
+      remoteAccess:
+        authentication: generatedPublicPrivateKey
+        username: ubuntu
+      constraints:
+        - tag: ${input.platform}
+        - tag: ${input.region}
+      Infoblox.IPAM.createFixedAddress: true
+      networks:
+        - network: ${resource.App_Network.id}
+          assignment: '${input.platform == "platform:vsphere" ? "static" : "dynamic"}'
+      attachedDisks: []
+      count: 2
+  Database:
+    type: Cloud.Machine
+    dependsOn:
+      - App
+    properties:
+      image: ${input.image}
+      flavor: ${input.flavor}
+      customizationSpec: test.cmlab.local_linux
+      remoteAccess:
+        authentication: generatedPublicPrivateKey
+        username: ubuntu
+      constraints:
+        - tag: ${input.platform}
+        - tag: ${input.region}
+      Infoblox.IPAM.createFixedAddress: true
+      networks:
+        - network: ${resource.Db_Network.id}
+          assignment: '${input.platform == "platform:vsphere" ? "static" : "dynamic"}'
+      attachedDisks: ${map_to_object(resource.Cloud_Volume_1[*].id, "source")}
+  Cloud_Volume_1:
+    type: Cloud.Volume
+    properties:
+      capacityGb: 2
+      count: 1
+  Cloud_SaltStack_1:
+    type: Cloud.SaltStack
+    properties:
+      hosts:
+        - ${resource.App.id}
+      masterId: saltstack_enterprise_installer
+  Cloud_SaltStack_2:
+    type: Cloud.SaltStack
+    properties:
+      hosts:
+        - ${resource.Database.id}
+      masterId: saltstack_enterprise_installer
+      stateFiles:
+        - /cloudbrokers/kickStart.sls
+      saltEnvironment: base
+      variables:
+        app: moad
+        webMinion: ${resource.App[0].resourceName}
+  App_Network:
+    type: Cloud.Network
+    properties:
+      networkType: existing
+      constraints:
+        - tag: ${input.platform}
+        - tag: '${input.platform == "platform:vsphere" ? "function:web" : "function:public"}'
+        - tag: project:multicloudmanagement
+  Db_Network:
+    type: Cloud.Network
+    properties:
+      networkType: existing
+      constraints:
+        - tag: ${input.platform}
+        - tag: '${input.platform == "platform:vsphere" ? "function:web" : "function:public"}'
+        - tag: project:multicloudmanagement
