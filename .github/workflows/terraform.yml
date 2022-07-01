@@ -57,6 +57,7 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     environment: production
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
@@ -94,5 +95,6 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
+      timeout-minutes: 30
       env: # environment variable
         TF_VAR_vra_refresh_token: ${{ secrets.TF_VAR_vra_refresh_token }}
