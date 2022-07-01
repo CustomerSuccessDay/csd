@@ -13,3 +13,8 @@ variable "vra_blueprintId" {
 variable "vra_projectId" {
   type = string
 }
+
+variable "vra_deploymentName" {
+  type = string
+}
+

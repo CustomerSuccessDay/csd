@@ -13,7 +13,7 @@ provider "vra" {
 }
 
 resource "vra_deployment" "this" {
-  name        = "Terraform Deployment"
+  name        = var.vra_deploymentName
   description = "Deployed from vRA provider for Terraform."
 
   blueprint_id = var.vra_blueprintId
