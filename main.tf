@@ -12,6 +12,10 @@ provider "vra" {
   refresh_token = var.vra_refresh_token
 }
 
+data "vra_deployment" "this" {
+  name = var.vra_deploymentName
+}
+
 resource "vra_deployment" "this" {
   name        = var.vra_deploymentName
   description = "Deployed from vRA provider for Terraform."
