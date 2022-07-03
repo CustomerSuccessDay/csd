@@ -12,6 +12,11 @@ provider "vra" {
   refresh_token = var.vra_refresh_token
 }
 
+resource "random_integer" "suffix" {
+  min = 1
+  max = 50000
+}
+
 #data "vra_deployment" "this" {#
 #  name = var.vra_deploymentName
 #}
