@@ -12,9 +12,9 @@ provider "vra" {
   refresh_token = var.vra_refresh_token
 }
 
-data "vra_deployment" "this" {
-  name = var.vra_deploymentName
-}
+#data "vra_deployment" "this" {#
+#  name = var.vra_deploymentName
+#}
 
 resource "vra_deployment" "this" {
   name        = var.vra_deploymentName
