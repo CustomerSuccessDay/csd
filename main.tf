@@ -17,10 +17,6 @@ resource "random_integer" "suffix" {
   max = 50000
 }
 
-#data "vra_deployment" "this" {#
-#  name = var.vra_deploymentName
-#}
-
 resource "vra_deployment" "this" {
   name        = format("%s-%d", var.vra_deploymentName, random_integer.suffix.result)
   description = "Deployed from vRA provider for Terraform."
