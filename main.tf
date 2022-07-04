@@ -5,6 +5,12 @@ terraform {
       version = "0.5.1"
     }
   }
+  cloud {
+    organization = "CustomerSuccess"
+    workspaces {
+      name = "csd"
+    }
+  }
 }
 
 provider "vra" {
