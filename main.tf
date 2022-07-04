@@ -17,19 +17,32 @@ resource "random_integer" "suffix" {
   max = 50000
 }
 
+data "vra_catalog_item" "this" {
+  name            = var.catalog_item_name
+  expand_versions = true
+}
+
+data "vra_project" "this" {
+  name = var.project_name
+}
+
 resource "vra_deployment" "this" {
+
   name        = format("%s-%d", var.vra_deploymentName, random_integer.suffix.result)
   description = "Deployed from vRA provider for Terraform."
 
-  blueprint_id = var.vra_blueprintId
-  project_id   = var.vra_projectId
+  catalog_item_id      = data.vra_catalog_item.this.id
+  catalog_item_version = var.catalog_item_version
+  project_id           = data.vra_project.this.id
 
   inputs = {
-    image        = "ubuntu1804"
-    flavor       = "medium"
-    region       = "region:sydney"
-    platform     = "platform:aws"
-    applications = "moad"
-    workloadtype = "function:public"
+    image        = var.image
+    flavor       = var.flavor
+    region       = var.region
+    platform     = var.platform
+    applications = var.applications
+    workloadtype = var.workloadtype
   }
+
+
 }
