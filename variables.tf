@@ -53,3 +53,11 @@ variable "applications" {
 variable "workloadtype" {
   type = string
 }
+
+variable "deployment_name" {
+  type = string
+}
+
+variable "appCount" {
+  type = string
+}

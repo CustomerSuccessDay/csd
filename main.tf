@@ -32,9 +32,11 @@ data "vra_project" "this" {
   name = var.project_name
 }
 
+
+
 resource "vra_deployment" "this" {
 
-  name        = format("%s-%d", var.vra_deploymentName, random_integer.suffix.result)
+  name        = var.deployment_name
   description = "Deployed from vRA provider for Terraform."
 
   catalog_item_id      = data.vra_catalog_item.this.id
@@ -48,7 +50,6 @@ resource "vra_deployment" "this" {
     platform     = var.platform
     applications = var.applications
     workloadtype = var.workloadtype
+    count        = var.appCount
   }
-
-
 }
